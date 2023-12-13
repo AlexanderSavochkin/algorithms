@@ -9,9 +9,9 @@
 
 using std::complex;
 
-/*
+
 template <typename Tcontainer, typename Tvalue>
-void slow_fourier_transform(Tcontainer& input_data, Tcontainer& output_data, unsigned int log2_size)
+void naive_fourier_transform(Tcontainer& input_data, Tcontainer& output_data, unsigned int log2_size, int direction)
 {
 	size_t N = 1 << log2_size;
 	for (auto k = 0; k < N; ++k)
@@ -19,16 +19,16 @@ void slow_fourier_transform(Tcontainer& input_data, Tcontainer& output_data, uns
 		output_data[k] = Tvalue(0);
 		for (auto i = 0; i < N; ++i)
 		{
-			output_data[k] = input_data[i] * exp(-)
+			output_data[k] += input_data[i] * exp(complex<Tvalue>(Tvalue(0), direction * Tvalue(2 * M_PI * i * k / N)));
 		}
 	}
 }
-*/
+
 
 // Decimation in frequence domain version of FFT
 // This implementation destroys the input data
 template <typename Tcontainer, typename Tvalue>
-void fft(Tcontainer& input_data, Tcontainer& output_data, unsigned int log2_size)
+void fft_frequency_decimation(Tcontainer& input_data, Tcontainer& output_data, unsigned int log2_size, int direction)
 {
 	const complex<Tvalue> I = complex<Tvalue>(Tvalue(0.0), Tvalue(1.0));
 	Tcontainer* current_data = &input_data, *next_data = &output_data;
@@ -43,7 +43,7 @@ void fft(Tcontainer& input_data, Tcontainer& output_data, unsigned int log2_size
 			for (int i = 0; i < N; ++i)
 			{
 				// Butterfly
-				complex<Tvalue> w = exp(-I * M_PI * (Tvalue)i / (Tvalue)N);
+				complex<Tvalue> w = exp( complex<Tvalue>(Tvalue(0), direction * M_PI * (Tvalue)i / (Tvalue)N ));
 				complex<Tvalue> a = (*current_data)[c+i];
 				complex<Tvalue> b = (*current_data)[c+i+N];
 				(*next_data)[c+i] = a + b;
