@@ -12,7 +12,8 @@ using std::abs;
 
 const double Tolerance = 1e-7;
 
-bool check_wave(int logsize, int periods)
+template <typename FFT>
+bool check_wave(FFT fft, int logsize, int periods)
 {
     int size = 1 << logsize;
     const complex<double> I = complex<double>(0.0, 1.0);
@@ -23,7 +24,7 @@ bool check_wave(int logsize, int periods)
     }
 
     vector<complex<double>> spectrum(size);
-    fft_frequency_decimation<vector<complex<double>>, double >(signal, spectrum, logsize, -1);
+    fft(signal, spectrum, logsize, -1);
 
     for (int i = 0; i < size; ++i)
         clog << spectrum[i] << ' ';
@@ -42,7 +43,8 @@ bool check_wave(int logsize, int periods)
     return true;
 }
 
-bool compare_with_naive(int logsize)
+template <typename FFT>
+bool compare_with_naive(FFT fft, int logsize)
 {
     int size = 1 << logsize;
     const complex<double> I = complex<double>(0.0, 1.0);
@@ -59,7 +61,7 @@ bool compare_with_naive(int logsize)
     copy(signal.begin(), signal.end(), input_signal_2.begin());
 
     vector<complex<double>> spectrum(size);
-    fft_frequency_decimation<vector<complex<double>>, double >(input_signal_1, spectrum, logsize, -1);
+    fft(input_signal_1, spectrum, logsize, -1);
 
     vector<complex<double>> spectrum_naive(size);
     naive_fourier_transform<vector<complex<double>>, double >(input_signal_2, spectrum_naive, logsize, -1);
@@ -73,7 +75,8 @@ bool compare_with_naive(int logsize)
     return true;
 }
 
-bool compare_forward_backward_fft(int logsize)
+template <typename FFT>
+bool compare_forward_backward_fft(FFT fft, int logsize)
 {
 	int size = 1 << logsize;
 	const complex<double> I = complex<double>(0.0, 1.0);
@@ -85,8 +88,8 @@ bool compare_forward_backward_fft(int logsize)
 	vector<complex<double>> input_signal_1(size);
 	copy(signal.begin(), signal.end(), input_signal_1.begin());
 	vector<complex<double>> spectrum(size);
-	fft_frequency_decimation<vector<complex<double>>, double >(input_signal_1, spectrum, logsize, -1);
-	fft_frequency_decimation<vector<complex<double>>, double >(spectrum, input_signal_1, logsize, 1);
+    fft(input_signal_1, spectrum, logsize, -1);
+    fft(spectrum, input_signal_1, logsize, 1);
     //Re-normalize
     for (int i = 0; i < size; ++i)
     {
@@ -101,10 +104,15 @@ bool compare_forward_backward_fft(int logsize)
 	return true;
 }
 
-
-
-TEST_CASE( "Test exp wave", "[fft-test-1]" ) {
-    REQUIRE(check_wave(4, 4));
-    REQUIRE(compare_with_naive(6));
-    REQUIRE(compare_forward_backward_fft(5));
+TEST_CASE( "Test frequency decimation FFT", "[fft-test-1]" ) {
+    REQUIRE(check_wave(fft_frequency_decimation<vector<complex<double>>, double >, 4, 4));
+    REQUIRE(compare_with_naive(fft_frequency_decimation < vector<complex<double>>, double >, 6));
+    REQUIRE(compare_forward_backward_fft(fft_frequency_decimation < vector<complex<double>>, double >, 5));
 }
+
+TEST_CASE( "Test time decimation FFT", "[fft-test-2]" ) {
+    REQUIRE(check_wave(fft_time_decimation < vector<complex<double>>, double >, 4, 4));
+    REQUIRE(compare_with_naive(fft_time_decimation < vector<complex<double>>, double >, 6));
+    REQUIRE(compare_forward_backward_fft(fft_time_decimation < vector<complex<double>>, double >, 5));
+}
+

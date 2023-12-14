@@ -1,4 +1,6 @@
 # Fast Fourier Transform
 
+Implemented:
+
 - [x] Frequence domain decimation approach
-- [ ] Time domain decimation approach
+- [x] Time domain decimation approach
